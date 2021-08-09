@@ -27,6 +27,8 @@ extern NSNotificationName _Nonnull kIASDKInitCompleteNotification;
 
 + (void)configureIASDKWithInfo:(NSDictionary *)info;
 
++ (void)collectConsentStatusFromMoPub;
+
 @end
 
 NS_ASSUME_NONNULL_END

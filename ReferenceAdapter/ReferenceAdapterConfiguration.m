@@ -14,7 +14,7 @@
 
 /// The version of the adapter.
 - (NSString *)adapterVersion {
-    return @"1.0.0.1";
+    return @"1.0.0.2";
 }
 
 /// An optional identity token used for ORTB bidding requests required for Advanced Bidding.
