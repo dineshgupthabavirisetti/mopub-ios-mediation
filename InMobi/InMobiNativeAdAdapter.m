@@ -123,8 +123,6 @@ static NSString *const kInMobiIconImageURL = @"url";
     __weak __typeof__(self) weakSelf = self;
     IMCompletionBlock completionBlock = ^{
         if ([weakSelf.delegate respondsToSelector:@selector(nativeAdDidClick:)]) {
-            // Sending click to MoPub SDK.
-            MPLogEvent([MPLogEvent adTappedForAdapter:[self adapterName]]);
             [weakSelf.delegate nativeAdDidClick:weakSelf];
         }
         [weakSelf.delegate nativeAdWillPresentModalForAdapter:self];
@@ -138,16 +136,17 @@ static NSString *const kInMobiIconImageURL = @"url";
     MPLogEvent([MPLogEvent adShowAttemptForAdapter:name]);
     MPLogEvent([MPLogEvent adShowSuccessForAdapter:name]);
     MPLogEvent([MPLogEvent adDidAppearForAdapter:name]);
-    // Sending impression to MoPub SDK.
-    [self.delegate nativeAdWillLogImpression:self];
     self.adView = view;
 }
 
 - (void)trackClick {
+    // Sending click to MoPub SDK.
+    MPLogEvent([MPLogEvent adTappedForAdapter:[self adapterName]]);
     [self.nativeAd reportAdClickAndOpenLandingPage];
 }
 
 - (void)trackImpression {
+    // Sending impression to MoPub SDK.
     [self.delegate nativeAdWillLogImpression:self];
 }
 
