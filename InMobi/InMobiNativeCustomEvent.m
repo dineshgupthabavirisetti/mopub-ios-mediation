@@ -24,8 +24,6 @@
 #import "InMobiAdapterConfiguration.h"
 #import "InMobiNativeAdAdapter.h"
 
-static NSString *gAppId = nil;
-
 @interface InMobiNativeCustomEvent ()
 
 @property (nonatomic, strong) IMNative *nativeAd;
@@ -102,7 +100,6 @@ static NSString *gAppId = nil;
 
 - (void)nativeDidPresentScreen:(IMNative*)native{
     MPLogEvent([MPLogEvent adDidAppearForAdapter:[self adapterName]]);
-    [self.adAdapter.delegate nativeAdWillPresentModalForAdapter:self.adAdapter];
 }
 
 - (void)nativeWillDismissScreen:(IMNative*)native{
