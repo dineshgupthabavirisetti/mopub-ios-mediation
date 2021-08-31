@@ -136,6 +136,8 @@ static NSString *const kInMobiIconImageURL = @"url";
     MPLogEvent([MPLogEvent adShowAttemptForAdapter:name]);
     MPLogEvent([MPLogEvent adShowSuccessForAdapter:name]);
     MPLogEvent([MPLogEvent adDidAppearForAdapter:name]);
+    // Sending impression to MoPub SDK.
+    [self.delegate nativeAdWillLogImpression:self];
     self.adView = view;
 }
 
@@ -143,11 +145,6 @@ static NSString *const kInMobiIconImageURL = @"url";
     // Sending click to MoPub SDK.
     MPLogEvent([MPLogEvent adTappedForAdapter:[self adapterName]]);
     [self.nativeAd reportAdClickAndOpenLandingPage];
-}
-
-- (void)trackImpression {
-    // Sending impression to MoPub SDK.
-    [self.delegate nativeAdWillLogImpression:self];
 }
 
 - (UIView *)mainMediaView {
