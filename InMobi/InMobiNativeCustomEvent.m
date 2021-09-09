@@ -48,6 +48,7 @@
         return;
     }
     
+    [InMobiAdapterConfiguration setGDPRConsent];
     self.nativeAd = [[IMNative alloc] initWithPlacementId:placementId delegate:self];
     
     // Mandatory params to be set by the publisher to identify the supply source type

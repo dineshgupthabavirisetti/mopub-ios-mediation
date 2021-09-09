@@ -22,6 +22,8 @@
 }
 
 - (NSString *)biddingToken {
+    [InMobiAdapterConfiguration setGDPRConsent];
+    
     NSMutableDictionary *paramsDict = [[NSMutableDictionary alloc] init];
     [paramsDict setObject:@"c_mopub" forKey:@"tp"];
     [paramsDict setObject:MP_SDK_VERSION forKey:@"tp-ver"];
@@ -87,19 +89,19 @@ static BOOL isInMobiSDKInitialized = false;
         };
         
         [InMobiAdapterConfiguration invokeOnMainThreadAsSynced:YES withCompletionBlock:completionBlock];
-        [IMSdk setPartnerGDPRConsent:[InMobiAdapterConfiguration getGdprConsentObj]];
+        [InMobiAdapterConfiguration setGDPRConsent];
         MPLogInfo(@"InMobi SDK initialized successfully.");
     } else {
         MPLogInfo(@"InMobi SDK already initialized, no need to reinitialize.");
     }
 }
 
-+(NSDictionary *)getGdprConsentObj {
++(void )setGDPRConsent {
     NSString *isGdprAvaialble = MoPub.sharedInstance.isGDPRApplicable == MPBoolYes  ? @"true" : @"false";
     NSString *isGdprApplies = MoPub.sharedInstance.canCollectPersonalInfo == true ? @"1" : @"0";
     NSDictionary *gdprConsent = @{ IM_MPADAPTER_PARTNER_GDPR_CONSENT_AVAILABLE : isGdprAvaialble,
                                    IM_MPADAPTER_PARTNER_GDPR_CONSENT_APPLICABLE : isGdprApplies};
-    return  gdprConsent;
+    [IMSdk setPartnerGDPRConsent: gdprConsent];
 }
 
 #pragma mark - InMobiAdapterConfiguration Error Handling Methods
