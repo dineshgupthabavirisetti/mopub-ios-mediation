@@ -24,9 +24,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readwrite, copy) MPNativeViewSizeHandler viewSizeHandler;
 
 /// Constructs and returns an MPNativeAdRendererConfiguration object specific for the
-/// MPGoogleAdMobNativeRenderer. You must set all the properties on the configuration object.
+/// InMobiNativeAdRenderer. You must set all the properties on the configuration object.
 /// @param rendererSettings Application defined settings.
-/// @return A configuration object for MPGoogleAdMobNativeRenderer.
+/// @return A configuration object for InMobiNativeAdRenderer.
 + (MPNativeAdRendererConfiguration *)rendererConfigurationWithRendererSettings:
     (id<MPNativeAdRendererSettings>)rendererSettings;
 

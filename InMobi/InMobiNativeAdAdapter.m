@@ -112,6 +112,10 @@ static NSString *const kInMobiIconImageURL = @"url";
 
 #pragma mark - <MPNativeAdAdapter>
 
+- (NSString *) getAdNetworkId {
+    return _placementId;
+}
+
 - (void)displayContentForURL:(NSURL *)URL rootViewController:(UIViewController *)controller {
     if (!controller) {
         return;
@@ -123,6 +127,9 @@ static NSString *const kInMobiIconImageURL = @"url";
     __weak __typeof__(self) weakSelf = self;
     IMCompletionBlock completionBlock = ^{
         if ([weakSelf.delegate respondsToSelector:@selector(nativeAdDidClick:)]) {
+            // Sending click to MoPub SDK.
+            MPLogAdEvent([MPLogEvent adTappedForAdapter:NSStringFromClass(self.class)],
+                         [self getAdNetworkId]);
             [weakSelf.delegate nativeAdDidClick:weakSelf];
         }
         [weakSelf.delegate nativeAdWillPresentModalForAdapter:self];
@@ -131,11 +138,15 @@ static NSString *const kInMobiIconImageURL = @"url";
 }
 
 - (void)willAttachToView:(UIView *)view {
-    NSString *name = [self adapterName];
-    MPLogEvent([MPLogEvent adWillAppearForAdapter:name]);
-    MPLogEvent([MPLogEvent adShowAttemptForAdapter:name]);
-    MPLogEvent([MPLogEvent adShowSuccessForAdapter:name]);
-    MPLogEvent([MPLogEvent adDidAppearForAdapter:name]);
+    MPLogAdEvent([MPLogEvent adWillAppearForAdapter:NSStringFromClass(self.class)],
+                 [self getAdNetworkId]);
+    MPLogAdEvent([MPLogEvent adShowAttemptForAdapter:NSStringFromClass(self.class)],
+                 [self getAdNetworkId]);
+    MPLogAdEvent([MPLogEvent adShowSuccessForAdapter:NSStringFromClass(self.class)],
+                 [self getAdNetworkId]);
+    MPLogAdEvent([MPLogEvent adDidAppearForAdapter:NSStringFromClass(self.class)],
+                 [self getAdNetworkId]);
+    
     // Sending impression to MoPub SDK.
     [self.delegate nativeAdWillLogImpression:self];
     self.adView = view;

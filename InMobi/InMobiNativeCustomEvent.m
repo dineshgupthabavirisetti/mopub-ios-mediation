@@ -28,12 +28,19 @@
 
 @property (nonatomic, strong) IMNative *nativeAd;
 @property (nonatomic, strong) InMobiNativeAdAdapter *adAdapter;
+@property (nonatomic, copy) NSString *placementId;
 
 @end
 
 @implementation InMobiNativeCustomEvent
 
+- (NSString *) getAdNetworkId {
+    return _placementId;
+}
+
 - (void)requestAdWithCustomEventInfo:(NSDictionary *)info adMarkup:(NSString *)adMarkup {
+    NSString * const placementId = info[kIMPlacementIdKey];
+    
     if (![InMobiAdapterConfiguration isInMobiSDKInitialized]) {
         NSString *message = @"Native ad request";
         [self failLoadWithError: [InMobiAdapterConfiguration createInitializationError: message]];
@@ -41,16 +48,19 @@
         return;
     }
     
-    long long placementId = [[info valueForKey:kIMPlacementIdKey] longLongValue];
-    if(placementId <= 0) {
-        NSString *message = @"Native ad initialization skipped. The placementID is incorrect.";
-        [self failLoadWithError: [InMobiAdapterConfiguration createInitializationError: message]];
+    self.placementId = placementId;
+    long long placementIdLong = [placementId longLongValue];
+    [InMobiAdapterConfiguration setCachedInitializationParameters: info];
+
+    NSError * placementIdError = [InMobiAdapterConfiguration validatePlacementId:placementId forOperation:@"native ad request"];
+    if (placementIdError) {
+        [self failLoadWithError:placementIdError];
         return;
     }
     
     [InMobiAdapterConfiguration updatePartnerGDPRConsent];
-    self.nativeAd = [[IMNative alloc] initWithPlacementId:placementId delegate:self];
-    
+    self.nativeAd = [[IMNative alloc] initWithPlacementId:placementIdLong delegate:self];
+
     // Mandatory params to be set by the publisher to identify the supply source type
     NSMutableDictionary *paramsDict = [[NSMutableDictionary alloc] init];
     [paramsDict setObject:@"c_mopub" forKey:@"tp"];
@@ -82,43 +92,48 @@
 #pragma mark - IMNativeDelegate
 
 - (void)nativeDidFinishLoading:(IMNative *)imnative {
-    MPLogEvent([MPLogEvent adLoadSuccessForAdapter:NSStringFromClass(self.class)]);
+    MPLogAdEvent([MPLogEvent adLoadSuccessForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
     MPLogInfo(@"[InMobi] custom ad content:%@",[imnative customAdContent]);
+    
     self.adAdapter = [[InMobiNativeAdAdapter alloc] initWithInMobiNativeAd:self.nativeAd];
     MPNativeAd *interfaceAd = [[MPNativeAd alloc] initWithAdAdapter:self.adAdapter];
     [self.delegate nativeCustomEvent:self didLoadAd:interfaceAd];
 }
 
 - (void)native:(IMNative*)native didFailToLoadWithError:(IMRequestStatus*)error {
-    MPLogEvent([MPLogEvent adLoadFailedForAdapter:NSStringFromClass(self.class) error:error]);
+    MPLogAdEvent([MPLogEvent adLoadFailedForAdapter:NSStringFromClass(self.class) error:error], [self getAdNetworkId]);
+    
     [self.delegate nativeCustomEvent:self didFailToLoadAdWithError:MPNativeAdNSErrorForInvalidAdServerResponse(error.description)];
 }
 
 - (void)nativeWillPresentScreen:(IMNative*)native{
-    MPLogEvent([MPLogEvent adWillAppearForAdapter:[self adapterName]]);
+    MPLogAdEvent([MPLogEvent adWillPresentModalForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
+    
     [self.adAdapter.delegate nativeAdWillPresentModalForAdapter:self.adAdapter];
 }
 
 - (void)nativeDidPresentScreen:(IMNative*)native{
-    MPLogEvent([MPLogEvent adDidAppearForAdapter:[self adapterName]]);
+    MPLogAdEvent([MPLogEvent adDidAppearForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
 }
 
 - (void)nativeWillDismissScreen:(IMNative*)native{
-    MPLogEvent([MPLogEvent adWillDisappearForAdapter:[self adapterName]]);
+    MPLogAdEvent([MPLogEvent adWillDisappearForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
 }
 
 - (void)nativeDidDismissScreen:(IMNative*)native{
-    MPLogEvent([MPLogEvent adDidDisappearForAdapter:[self adapterName]]);
+    MPLogAdEvent([MPLogEvent adDidDisappearForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
+    
     [self.adAdapter.delegate nativeAdDidDismissModalForAdapter:self.adAdapter];
 }
 
 - (void)userWillLeaveApplicationFromNative:(IMNative*)native{
-    MPLogEvent([MPLogEvent adWillLeaveApplicationForAdapter:[self adapterName]]);
+    MPLogAdEvent([MPLogEvent adWillLeaveApplicationForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
+    
     [self.adAdapter.delegate nativeAdWillLeaveApplicationFromAdapter:self.adAdapter];
 }
 
 - (void)native:(IMNative *)native didInteractWithParams:(NSDictionary *)params{
-    MPLogEvent([MPLogEvent adTappedForAdapter:[self adapterName]]);
+    MPLogAdEvent([MPLogEvent adTappedForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
 }
 
 - (void)nativeAdImpressed:(IMNative *)native{
@@ -126,11 +141,11 @@
 }
 
 - (void)nativeDidFinishPlayingMedia:(IMNative*)native{
-    MPLogInfo(@"[InMobi]Native video did finish playing media");
+    MPLogInfo(@"[InMobi] Native video did finish playing media");
 }
 
 - (void)userDidSkipPlayingMediaFromNative:(IMNative *)native {
-    MPLogInfo(@"[InMobi]User did skip the media from Native AD");
+    MPLogInfo(@"[InMobi] User did skip the media from Native AD");
 }
 
 @end
