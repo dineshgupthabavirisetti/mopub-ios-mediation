@@ -94,10 +94,10 @@ static BOOL isInMobiSDKInitialized = false;
 }
 
 +(void )updatePartnerGDPRConsent {
-    NSString *isGdprApplies = MoPub.sharedInstance.canCollectPersonalInfo == true ? @"1" : @"0";
-    NSString *isGdprAvaialble = MoPub.sharedInstance.isGDPRApplicable == MPBoolYes  ? @"true" : @"false";
-    NSDictionary *gdprConsent = @{ IM_PARTNER_GDPR_APPLIES : isGdprApplies,
-                                   IM_PARTNER_GDPR_CONSENT_AVAILABLE : isGdprAvaialble};
+    NSDictionary *gdprConsent = @{
+        IM_PARTNER_GDPR_APPLIES : MoPub.sharedInstance.isGDPRApplicable == MPBoolYes  ? @"true" : @"false",
+        IM_PARTNER_GDPR_CONSENT_AVAILABLE : MoPub.sharedInstance.canCollectPersonalInfo == true ? @"1" : @"0"
+    };
     [IMSdk setPartnerGDPRConsent: gdprConsent];
 }
 
