@@ -68,7 +68,7 @@
         return;
     }
 
-    [InMobiAdapterConfiguration setGDPRConsent];
+    [InMobiAdapterConfiguration updatePartnerGDPRConsent];
     self.interstitialAd = [[IMInterstitial alloc] initWithPlacementId:placementIdLong delegate:self];
     if (!self.interstitialAd) {
         NSError * interstitialFailedToInitialize = [InMobiAdapterConfiguration createErrorWith:@"Aborting InMobi interstitial ad request"

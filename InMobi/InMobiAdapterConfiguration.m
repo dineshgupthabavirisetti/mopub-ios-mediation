@@ -22,7 +22,7 @@
 }
 
 - (NSString *)biddingToken {
-    [InMobiAdapterConfiguration setGDPRConsent];
+    [InMobiAdapterConfiguration updatePartnerGDPRConsent];
     
     NSMutableDictionary *paramsDict = [[NSMutableDictionary alloc] init];
     [paramsDict setObject:@"c_mopub" forKey:@"tp"];
@@ -45,9 +45,6 @@ NSString * const kIMAccountIdKey   = @"accountid";
 static const NSString * IM_MPADAPTER_GDPR_CONSENT_AVAILABLE = @"gdpr_consent_available";
 static const NSString * IM_MPADAPTER_GDPR_CONSENT_APPLICABLE = @"gdpr";
 static const NSString * IM_MPADAPTER_GDPR_CONSENT_IAB = @"gdpr_consent";
-
-static const NSString * IM_MPADAPTER_PARTNER_GDPR_CONSENT_AVAILABLE = @"partner_gdpr_consent_available";
-static const NSString * IM_MPADAPTER_PARTNER_GDPR_CONSENT_APPLICABLE = @"partner_gdpr_applies";
 
 static BOOL isInMobiSDKInitialized = false;
 
@@ -89,18 +86,18 @@ static BOOL isInMobiSDKInitialized = false;
         };
         
         [InMobiAdapterConfiguration invokeOnMainThreadAsSynced:YES withCompletionBlock:completionBlock];
-        [InMobiAdapterConfiguration setGDPRConsent];
+        [InMobiAdapterConfiguration updatePartnerGDPRConsent];
         MPLogInfo(@"InMobi SDK initialized successfully.");
     } else {
         MPLogInfo(@"InMobi SDK already initialized, no need to reinitialize.");
     }
 }
 
-+(void )setGDPRConsent {
-    NSString *isGdprAvaialble = MoPub.sharedInstance.isGDPRApplicable == MPBoolYes  ? @"true" : @"false";
++(void )updatePartnerGDPRConsent {
     NSString *isGdprApplies = MoPub.sharedInstance.canCollectPersonalInfo == true ? @"1" : @"0";
-    NSDictionary *gdprConsent = @{ IM_MPADAPTER_PARTNER_GDPR_CONSENT_AVAILABLE : isGdprAvaialble,
-                                   IM_MPADAPTER_PARTNER_GDPR_CONSENT_APPLICABLE : isGdprApplies};
+    NSString *isGdprAvaialble = MoPub.sharedInstance.isGDPRApplicable == MPBoolYes  ? @"true" : @"false";
+    NSDictionary *gdprConsent = @{ IM_PARTNER_GDPR_APPLIES : isGdprApplies,
+                                   IM_PARTNER_GDPR_CONSENT_AVAILABLE : isGdprAvaialble};
     [IMSdk setPartnerGDPRConsent: gdprConsent];
 }
 
