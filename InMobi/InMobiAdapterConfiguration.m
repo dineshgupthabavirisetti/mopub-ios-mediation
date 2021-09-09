@@ -95,8 +95,8 @@ static BOOL isInMobiSDKInitialized = false;
 
 +(void )updatePartnerGDPRConsent {
     NSDictionary *gdprConsent = @{
-        IM_PARTNER_GDPR_APPLIES : MoPub.sharedInstance.isGDPRApplicable == MPBoolYes  ? @"true" : @"false",
-        IM_PARTNER_GDPR_CONSENT_AVAILABLE : MoPub.sharedInstance.canCollectPersonalInfo == true ? @"1" : @"0"
+        IM_PARTNER_GDPR_APPLIES : MoPub.sharedInstance.isGDPRApplicable == MPBoolYes  ? @"1" : @"0",
+        IM_PARTNER_GDPR_CONSENT_AVAILABLE : MoPub.sharedInstance.canCollectPersonalInfo == true ? @"true" : @"false"
     };
     [IMSdk setPartnerGDPRConsent: gdprConsent];
 }
