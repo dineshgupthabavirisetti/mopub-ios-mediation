@@ -1,10 +1,3 @@
-//
-//  UnityAdsAdapterConfiguration.h
-//  MoPubSDK
-//
-//  Copyright © 2017 MoPub. All rights reserved.
-//
-
 #import <Foundation/Foundation.h>
 #if __has_include(<MoPub/MoPub.h>)
 #import <MoPub/MoPub.h>
@@ -28,6 +21,12 @@ NS_ASSUME_NONNULL_BEGIN
  @param parameters Ad response parameters
  */
 + (void)updateInitializationParameters:(NSDictionary *)parameters;
+
+/**
+ Initializes UnityAds sdk if it wasn't initialized before.
+ @param gameId Unique identifier for a game, given by Unity Ads admin tools or Unity editor.
+ */
++ (void)initializeIfNeeded:(NSString *)gameId complete:(void(^ _Nullable)(NSError * _Nullable))complete;
 
 // MPAdapterConfiguration
 @property (nonatomic, copy, readonly) NSString * adapterVersion;

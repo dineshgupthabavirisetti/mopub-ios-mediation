@@ -3,9 +3,9 @@
 #import <SAKSDK/SAKSDK.h>
 #import <UIKit/UIKit.h>
 #if __has_include("MoPub.h")
-    #import "MPError.h"
-    #import "MPLogging.h"
-    #import "MoPub.h"
+#import "MPError.h"
+#import "MPLogging.h"
+#import "MoPub.h"
 #endif
 
 static NSString * const kSAKSlotId = @"slotId";
@@ -47,20 +47,28 @@ static NSString * const kSAKSlotId = @"slotId";
         self.adInterstitial.delegate = self;
     }
     
-    SAKAdRequestConfigurationBuilder *configurationBuilder = [SAKAdRequestConfigurationBuilder new];
-    [configurationBuilder withPublisherSlotId:self.slotId];
-    
-    if (![[SAKMobileAd shared] initialized]) {
+    if (!SAKMobileAd.shared.initialized) {
+        typeof(self) __weak weakSelf = self;
         [SnapAdAdapterConfiguration initSnapAdKit:info complete:^(NSError * error) {
-            if (error == nil) {
-                MPLogAdEvent([MPLogEvent adLoadAttemptForAdapter:NSStringFromClass(self.class) dspCreativeId:nil dspName:nil], [self getAdNetworkId]);
-                
-                [self.adInterstitial loadRequest:[configurationBuilder build]];
+            if (!error) {
+                [weakSelf _loadAdWithAdMarkup:adMarkup];
             }
         }];
     } else {
+        [self _loadAdWithAdMarkup:adMarkup];
+    }
+}
+
+- (void)_loadAdWithAdMarkup:(NSString *)adMarkup
+{
+    if (adMarkup.length) {
+        NSData *bidPayload = [[NSData alloc] initWithBase64EncodedString:adMarkup options:0];
+        [self.adInterstitial loadAdWithBidPayload:bidPayload publisherSlotId:self.slotId];
+    } else {
         MPLogAdEvent([MPLogEvent adLoadAttemptForAdapter:NSStringFromClass(self.class) dspCreativeId:nil dspName:nil], [self getAdNetworkId]);
         
+        SAKAdRequestConfigurationBuilder *configurationBuilder = [SAKAdRequestConfigurationBuilder new];
+        [configurationBuilder withPublisherSlotId:self.slotId];
         [self.adInterstitial loadRequest:[configurationBuilder build]];
     }
 }

@@ -3,10 +3,11 @@
 
 @implementation SnapAdAdapterConfiguration
 
-static NSString * const kSAKAppId = @"appId";
+NSString * const kSAKAppId = @"appId";
+
 static NSString * const kAdapterErrorDomain = @"com.mopub.mopub-ios-sdk.mopub-snapchat-adapters";
-NSString * const kMoPubSnapAdapterVersion = @"1.1.2.1";
-NSString * const kMoPubNetworkName = @"SnapAudienceNetwork";
+NSString * const kMoPubSnapAdapterVersion = @"2.0.0.0";
+NSString * const kMoPubNetworkName = @"snap";
 
 typedef NS_ENUM(NSInteger, SAKAdapterErrorCode) {
     SAKAdpaterErrorCodeMissingAppId,
@@ -35,7 +36,7 @@ typedef NS_ENUM(NSInteger, SAKAdapterErrorCode) {
 }
 
 - (NSString *)biddingToken {
-    return nil;
+    return SAKMobileAd.shared.biddingToken;
 }
 
 - (NSString *)moPubNetworkName {
@@ -61,8 +62,8 @@ typedef NS_ENUM(NSInteger, SAKAdapterErrorCode) {
 
 + (void)initSnapAdKit:(NSDictionary *)info complete:(void(^)(NSError *))complete {
     
-    NSString * appId = info[kSAKAppId];
-    if ([appId length] == 0) {
+    NSString *appId = info[kSAKAppId];
+    if (!appId.length) {
         NSError * error = [NSError errorWithDomain:kAdapterErrorDomain code:SAKAdpaterErrorCodeNetworkError userInfo:@{ NSLocalizedDescriptionKey: @"Snap Snap Ad Kit initialization skipped. Incorrect or missing Snap appId." }];
         MPLogEvent([MPLogEvent error:error message:nil]);
         
@@ -76,7 +77,6 @@ typedef NS_ENUM(NSInteger, SAKAdapterErrorCode) {
     [configurationBuilder withSnapKitAppId:appId];
     
     BOOL debugLoggingEnabled = MPLogging.consoleLogLevel == MPBLogLevelDebug;
-    
     if (debugLoggingEnabled) {
         [SAKMobileAd shared].debug = YES;
     }

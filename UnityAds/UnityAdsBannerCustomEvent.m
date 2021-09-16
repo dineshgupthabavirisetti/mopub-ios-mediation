@@ -1,14 +1,10 @@
-//
-// Created by Ross Rothenstine on 11/5/18.
-// Copyright (c) 2018 MoPub. All rights reserved.
-//
-
 #import "UnityAdsBannerCustomEvent.h"
 #import "UnityRouter.h"
 #if __has_include("MoPub.h")
-    #import "MPLogging.h"
+#import "MPLogging.h"
 #endif
 #import "UnityAdsAdapterConfiguration.h"
+#import "NSError+UnityAdAdapter.h"
 
 static NSString *const kMPUnityBannerGameId = @"gameId";
 static NSString *const kUnityAdsOptionPlacementIdKey = @"placementId";
@@ -23,14 +19,12 @@ static NSString *const kUnityAdsOptionZoneIdKey = @"zoneId";
 @dynamic delegate;
 @dynamic localExtras;
 
-- (BOOL)enableAutomaticImpressionAndClickTracking
-{
+-(BOOL)enableAutomaticImpressionAndClickTracking {
     return NO;
 }
 
 -(id)init {
     if (self = [super init]) {
-
     }
     return self;
 }
@@ -55,47 +49,41 @@ static NSString *const kUnityAdsOptionZoneIdKey = @"zoneId";
     BOOL isMediumRectangleFormat = (format != nil ? [[format lowercaseString] containsString:@"medium_rectangle"] : NO);
     
     if (isMediumRectangleFormat) {
-        NSError *error = [self createErrorWith:@"Invalid ad format request received"
-                                     andReason:@"UnityAds only supports banner ads"
-                                 andSuggestion:@"Ensure the format type of your MoPub adunit is banner and not Medium Rectangle."];
+        NSError *error = [NSError errorWithDescription:@"Invalid ad format request received"
+                                                reason:@"UnityAds only supports banner ads"
+                                            suggestion:@"Ensure the format type of your MoPub adunit is banner and not Medium Rectangle."];
         
         MPLogAdEvent([MPLogEvent adLoadFailedForAdapter:NSStringFromClass(self.class) error:error], [self getAdNetworkId]);
-        [self.delegate inlineAdAdapter:self didFailToLoadAdWithError:nil];
+        [self.delegate inlineAdAdapter:self didFailToLoadAdWithError:error];
         
         return;
     }
     
     if (gameId == nil || self.placementId == nil) {
-        NSError *error = [self createErrorWith:@"Unity Ads adapter failed to request banner ad"
-                                     andReason:@"Custom event class data did not contain gameId/placementId"
-                                 andSuggestion:@"Update your MoPub custom event class data to contain a valid Unity Ads gameId/placementId."];
+        NSError *error = [NSError errorWithDescription:@"Adapter failed to request banner ad"
+                                                reason:@"Custom event class data did not contain gameId/placementId"
+                                            suggestion:@"Update your MoPub dashboard to have a valid Unity Ads gameId/placementId."];
         MPLogAdEvent([MPLogEvent adLoadFailedForAdapter:NSStringFromClass(self.class) error:error], [self getAdNetworkId]);
         [self.delegate inlineAdAdapter:self didFailToLoadAdWithError:error];
         
         return;
     }
-
+    
     // Only need to cache game ID for SDK initialization
     [UnityAdsAdapterConfiguration updateInitializationParameters:info];
     
-    if (![UnityAds isInitialized]) {
-        [[UnityRouter sharedRouter] initializeWithGameId:gameId withCompletionHandler:nil];
-        
-        NSError *error = [self createErrorWith:@"Unity Ads adapter failed to request banner ad, Unity Ads is not initialized yet. Failing this ad request and calling Unity Ads initialization so it would be available for an upcoming ad request"
-                                     andReason:@"Unity Ads is not initialized."
-                                 andSuggestion:@""];
-        MPLogAdEvent([MPLogEvent adLoadFailedForAdapter:NSStringFromClass(self.class) error:error], [self getAdNetworkId]);
-        [self.delegate inlineAdAdapter:self didFailToLoadAdWithError:error];
-        
-        return;
-    }
+    [UnityAdsAdapterConfiguration initializeIfNeeded:gameId complete:^(NSError * _Nullable error) {
+        if (error != nil) {
+            MPLogAdEvent([MPLogEvent adLoadFailedForAdapter:NSStringFromClass(self.class) error:error], [self getAdNetworkId]);
+            [self.delegate inlineAdAdapter:self didFailToLoadAdWithError:error];
+        }
+    }];
     
     CGSize adSize = [self unityAdsAdSizeFromRequestedSize:size];
     
     self.bannerAdView = [[UADSBannerView alloc] initWithPlacementId:self.placementId size:adSize];
     self.bannerAdView.delegate = self;
     [self.bannerAdView load];
-
     MPLogAdEvent([MPLogEvent adLoadAttemptForAdapter:NSStringFromClass(self.class) dspCreativeId:nil dspName:nil], [self getAdNetworkId]);
 }
 
@@ -104,25 +92,13 @@ static NSString *const kUnityAdsOptionZoneIdKey = @"zoneId";
     CGFloat width = size.width;
     CGFloat height = size.height;
     
-    if (width >= 728 && height >=90) {
-       return CGSizeMake(728, 90);
-    } else if (width >= 468 && height >=60) {
+    if (width >= 728 && height >= 90) {
+        return CGSizeMake(728, 90);
+    } else if (width >= 468 && height >= 60) {
         return CGSizeMake(468, 60);
     } else {
         return CGSizeMake(320, 50);
     }
-}
-
-#pragma mark - UnityAdsBannerDelegate
-
-- (NSError *)createErrorWith:(NSString *)description andReason:(NSString *)reason andSuggestion:(NSString *)suggestion {
-    NSDictionary *userInfo = @{
-                               NSLocalizedDescriptionKey: NSLocalizedString(description, nil),
-                               NSLocalizedFailureReasonErrorKey: NSLocalizedString(reason, nil),
-                               NSLocalizedRecoverySuggestionErrorKey: NSLocalizedString(suggestion, nil)
-                               };
-    
-    return [NSError errorWithDomain:NSStringFromClass([self class]) code:0 userInfo:userInfo];
 }
 
 #pragma mark - UADSBannerViewDelegate
@@ -148,28 +124,11 @@ static NSString *const kUnityAdsOptionZoneIdKey = @"zoneId";
 
 - (void)bannerViewDidError:(UADSBannerView *)bannerView error:(UADSBannerError *)error{
     
-    NSError *mopubAdaptorErrorMessage;
-    switch ([error code]) {
-        case UADSBannerErrorCodeUnknown:
-        mopubAdaptorErrorMessage = [self createErrorWith:@"Unity Ads Banner returned unknown error" andReason:@"" andSuggestion:@""];
-        break;
-            
-        case UADSBannerErrorCodeNativeError:
-        mopubAdaptorErrorMessage = [self createErrorWith:@"Unity Ads Banner returned native error" andReason:@"" andSuggestion:@""];
-        break;
-            
-        case UADSBannerErrorCodeWebViewError:
-        mopubAdaptorErrorMessage = [self createErrorWith:@"Unity Ads Banner returned WebView error" andReason:@"" andSuggestion:@""];
-        break;
-            
-        case UADSBannerErrorCodeNoFillError:
-        mopubAdaptorErrorMessage = [self createErrorWith:@"Unity Ads Banner returned no fill" andReason:@"" andSuggestion:@""];
-        break;
-    }
+    NSError *mopubAdapterErrorMessage = [NSError errorWithBannerCode:[error code]];
     
-    MPLogAdEvent([MPLogEvent adLoadFailedForAdapter:NSStringFromClass(self.class) error:mopubAdaptorErrorMessage], [self getAdNetworkId]);
-
-    [self.delegate inlineAdAdapter:self didFailToLoadAdWithError:nil];
+    MPLogAdEvent([MPLogEvent adLoadFailedForAdapter:NSStringFromClass(self.class) error:mopubAdapterErrorMessage], [self getAdNetworkId]);
+    
+    [self.delegate inlineAdAdapter:self didFailToLoadAdWithError:mopubAdapterErrorMessage];
 }
 
 - (NSString *) getAdNetworkId {

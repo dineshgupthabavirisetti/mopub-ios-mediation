@@ -4,9 +4,9 @@
 
 #import <SAKSDK/SAKSDK.h>
 #if __has_include("MoPub.h")
-    #import "MPError.h"
-    #import "MPLogging.h"
-    #import "MoPub.h"
+#import "MPError.h"
+#import "MPLogging.h"
+#import "MoPub.h"
 #endif
 
 static NSString *const kSAKSlotId = @"slotId";
@@ -57,28 +57,32 @@ static NSString *const kSAKFormatMediumRectangle = @"medium_rectangle";
     _sakAdView.delegate = self;
     _sakAdView.translatesAutoresizingMaskIntoConstraints = NO;
     
-    SAKAdRequestConfigurationBuilder *configurationBuilder = [SAKAdRequestConfigurationBuilder new];
-    [configurationBuilder withPublisherSlotId:self.slotId];
-    
     [SnapAdAdapterConfiguration updateInitializationParameters:info];
     
-    if ([[SAKMobileAd shared] initialized]) {
-        [_sakAdView loadRequest:[configurationBuilder build]];
-        
-        MPLogAdEvent([MPLogEvent adLoadAttemptForAdapter:NSStringFromClass(self.class) dspCreativeId:nil dspName:nil],
-                     self.slotId);
-    } else {
+    if (!SAKMobileAd.shared.initialized) {
         typeof(self) __weak weakSelf = self;
-        
         [SnapAdAdapterConfiguration initSnapAdKit:info
                                          complete:^(NSError *error) {
             if (!error) {
-                MPLogAdEvent([MPLogEvent adLoadAttemptForAdapter:NSStringFromClass(self.class) dspCreativeId:nil dspName:nil],
-                             self.slotId);
-                
-                [weakSelf.sakAdView loadRequest:[configurationBuilder build]];
+                [weakSelf _loadAdWithAdMarkup:adMarkup];
             }
         }];
+    } else {
+        [self _loadAdWithAdMarkup:adMarkup];
+    }
+}
+
+- (void)_loadAdWithAdMarkup:(NSString *)adMarkup
+{
+    MPLogAdEvent([MPLogEvent adLoadAttemptForAdapter:NSStringFromClass(self.class) dspCreativeId:nil dspName:nil], self.slotId);
+    
+    if (adMarkup.length) {
+        NSData *bidPayload = [[NSData alloc] initWithBase64EncodedString:adMarkup options:0];
+        [_sakAdView loadAdWithBidPayload:bidPayload publisherSlotId:self.slotId];
+    } else {
+        SAKAdRequestConfigurationBuilder *configurationBuilder = [SAKAdRequestConfigurationBuilder new];
+        [configurationBuilder withPublisherSlotId:self.slotId];
+        [_sakAdView loadRequest:[configurationBuilder build]];
     }
 }
 

@@ -10,6 +10,9 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+// The is a required key that represents the SnapKit App ID of the app that displays the ad.
+extern NSString * const kSAKAppId;
+
 @interface SnapAdAdapterConfiguration : MPBaseAdapterConfiguration
 
 + (void)updateInitializationParameters:(NSDictionary *)parameters;
