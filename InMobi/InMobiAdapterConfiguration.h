@@ -51,6 +51,8 @@ extern NSString * const kIMAccountIdKey;
 
 + (void)setupInMobiSDKDemographicsParams:(NSString *)accountId;
 
++(void)updatePartnerGDPRConsent;
+
 typedef void (^IMCompletionBlock)(void);
 
 + (void)invokeOnMainThreadAsSynced:(BOOL)sync withCompletionBlock:(IMCompletionBlock)compBlock;
