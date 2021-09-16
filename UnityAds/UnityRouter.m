@@ -1,20 +1,14 @@
-//
-//  UnityRouter.m
-//  MoPubSDK
-//
-//  Copyright (c) 2016 MoPub. All rights reserved.
-//
-
 #import "UnityRouter.h"
 #import "UnityAdsInstanceMediationSettings.h"
 #import "UnityAdsAdapterConfiguration.h"
+#import "NSError+UnityAdAdapter.h"
 
 #if __has_include(<MoPub/MoPub.h>)
-    #import <MoPub/MoPub.h>
+#import <MoPub/MoPub.h>
 #elif __has_include(<MoPubSDK/MoPub.h>)
-    #import <MoPubSDK/MoPub.h>
+#import <MoPubSDK/MoPub.h>
 #else
-    #import "MoPub.h"
+#import "MoPub.h"
 #endif
 
 @interface UnityAdsAdapterInitializationDelegate : NSObject<UnityAdsInitializationDelegate>
@@ -41,7 +35,7 @@
 
 - (id) init {
     self = [super init];
-
+    
     return self;
 }
 
@@ -75,12 +69,14 @@
         };
         initDelegate.initializationFailedBlock = ^(int error, NSString *message) {
             if (complete != nil) {
-                NSError *err = [NSError errorWithCode:(MOPUBErrorSDKNotInitialized) localizedDescription:message];
+                NSError *err = [NSError errorWithAdAdapterErrorCode:MOPUBErrorSDKNotInitialized description:message];
                 complete(err);
             }
         };
         
         [UnityAds initialize:gameId testMode:false enablePerPlacementLoad:true initializationDelegate:initDelegate];
+        
+        [UnityAds setDebugMode:(MPLogging.consoleLogLevel == MPBLogLevelDebug)];
     });
 }
 
@@ -89,8 +85,8 @@
     // Collect and pass the user's consent/non-consent from MoPub to the Unity Ads SDK
     UADSMetaData *gdprConsentMetaData = [[UADSMetaData alloc] init];
     
-    if ([[MoPub sharedInstance] isGDPRApplicable] == MPBoolYes){
-        if ([[MoPub sharedInstance] allowLegitimateInterest] == YES){
+    if ([[MoPub sharedInstance] isGDPRApplicable] == MPBoolYes) {
+        if ([[MoPub sharedInstance] allowLegitimateInterest] == YES) {
             if ([[MoPub sharedInstance] currentConsentStatus] == MPConsentStatusDenied
                 || [[MoPub sharedInstance] currentConsentStatus] == MPConsentStatusDoNotTrack) {
                 

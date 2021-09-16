@@ -1,5 +1,8 @@
 
 ## Changelog
+ * 3.7.5.2
+  * Refactor and update adapters to use latest Unity APIs.
+
 * 3.7.5.1
   * Adjust minimium MoPub SDK version from 5.17.0 to 5.17. This allows integrations to use MoPub 5.17.x up to (but not including) 6.0.
   * Service release. No new features. 

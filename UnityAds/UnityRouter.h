@@ -1,10 +1,3 @@
-//
-//  UnityRouter.h
-//  MoPubSDK
-//
-//  Copyright (c) 2016 MoPub. All rights reserved.
-//
-
 #import <Foundation/Foundation.h>
 #import <UnityAds/UnityAds.h>
 

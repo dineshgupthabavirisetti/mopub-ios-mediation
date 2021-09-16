@@ -3,9 +3,9 @@
 #import "SnapAdErrorHelpers.h"
 #import <SAKSDK/SAKSDK.h>
 #if __has_include("MoPub.h")
-    #import "MPLogging.h"
-    #import "MPError.h"
-    #import "MPReward.h"
+#import "MPLogging.h"
+#import "MPError.h"
+#import "MPReward.h"
 #endif
 
 static NSString *const kSAKSlotId = @"slotId";
@@ -40,14 +40,14 @@ static NSString *const kSAKSlotId = @"slotId";
     
     [SnapAdAdapterConfiguration updateInitializationParameters:info];
     
-    if ([[SAKMobileAd shared] initialized]) {
-        [self _loadRewardedAd];
+    if (SAKMobileAd.shared.initialized) {
+        [self _loadRewardedAdWithAdMarkup:adMarkup];
     } else {
         typeof(self) __weak weakSelf = self;
         [SnapAdAdapterConfiguration initSnapAdKit:info
                                          complete:^(NSError *error) {
             if (!error) {
-                [weakSelf _loadRewardedAd];
+                [weakSelf _loadRewardedAdWithAdMarkup:adMarkup];
             }
         }];
     }
@@ -100,7 +100,7 @@ static NSString *const kSAKSlotId = @"slotId";
 
 #pragma mark - private methods
 
-- (void)_loadRewardedAd
+- (void)_loadRewardedAdWithAdMarkup:(NSString *)adMarkup
 {
     MPLogAdEvent([MPLogEvent adLoadAttemptForAdapter:NSStringFromClass(self.class) dspCreativeId:nil dspName:nil],
                  self.slotId);
@@ -109,10 +109,14 @@ static NSString *const kSAKSlotId = @"slotId";
         _rewardedAd.delegate = self;
     }
     
-    SAKAdRequestConfigurationBuilder *configurationBuilder = [SAKAdRequestConfigurationBuilder new];
-    [configurationBuilder withPublisherSlotId:self.slotId];
-    
-    [_rewardedAd loadRequest:[configurationBuilder build]];
+    if (adMarkup.length) {
+        NSData *bidPayload = [[NSData alloc] initWithBase64EncodedString:adMarkup options:0];
+        [_rewardedAd loadAdWithBidPayload:bidPayload publisherSlotId:self.slotId];
+    } else {
+        SAKAdRequestConfigurationBuilder *configurationBuilder = [SAKAdRequestConfigurationBuilder new];
+        [configurationBuilder withPublisherSlotId:self.slotId];
+        [_rewardedAd loadRequest:[configurationBuilder build]];
+    }
 }
 
 #pragma mark - SAKRewardedAdDelegate methods
@@ -168,7 +172,6 @@ static NSString *const kSAKSlotId = @"slotId";
 {
     MPLogAdEvent([MPLogEvent adTappedForAdapter:NSStringFromClass(self.class)], self.slotId);
     MPLogAdEvent([MPLogEvent adWillLeaveApplicationForAdapter:NSStringFromClass(self.class)], self.slotId);
-
     [self.delegate fullscreenAdAdapterDidReceiveTap:self];
     [self.delegate fullscreenAdAdapterDidTrackClick:self];
     [self.delegate fullscreenAdAdapterWillLeaveApplication:self];
