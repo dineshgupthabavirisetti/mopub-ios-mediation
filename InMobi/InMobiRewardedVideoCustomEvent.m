@@ -73,6 +73,7 @@
         return;
     }
 
+    [InMobiAdapterConfiguration updatePartnerGDPRConsent];
     self.rewardedVideoAd = [[IMInterstitial alloc] initWithPlacementId:placementIdLong delegate:self];
     if (!self.rewardedVideoAd) {
         NSError * rewardedVideoFailedToInitialize = [InMobiAdapterConfiguration createErrorWith:@"Aborting InMobi rewarded video ad request"
