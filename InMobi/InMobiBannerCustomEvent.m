@@ -72,7 +72,6 @@
         return;
     }
     
-    [InMobiAdapterConfiguration updatePartnerGDPRConsent];
     self.bannerAd = [[IMBanner alloc] initWithFrame:bannerAdFrame placementId:placementIdLong delegate:self];
     if (!self.bannerAd) {
         NSError * bannerFailedToInitialize = [InMobiAdapterConfiguration createErrorWith:@"Aborting InMobi banner ad request"
